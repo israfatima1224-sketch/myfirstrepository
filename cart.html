@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopping Cart</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .cart-container { max-width: 900px; margin: 50px auto; }
+    .cart-item { border-bottom: 1px solid #ddd; padding: 15px 0; }
+    .cart-item:last-child { border-bottom: none; }
+    .item-img { width: 80px; height: 80px; object-fit: cover; }
+    .remove-item {
+      background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9em;
+      transition: all 0.3s ease;
+    }
+    .remove-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(255, 107, 107, 0.4);
+    }
+    #checkout-btn {
+      background: linear-gradient(45deg, #4CAF50, #45a049);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    #checkout-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(76,175,80,0.4);
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header class="site-header">
+    <!-- Logo & Title -->
+    <div class="logo">
+      <img src="logo.png" alt="Dairy Store">
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="about us.html">About</a>
+      <a href="checkout.html">Contacts</a>
+    </nav>
+  </header>
+
+  <div class="container cart-container">
+    <h2>Your Shopping Cart</h2>
+    <div id="cart-items"></div>
+    <div class="mt-4 d-flex justify-content-between align-items-center">
+      <h4>Total: $<span id="cart-total">0.00</span></h4>
+      <button class="btn btn-success" id="checkout-btn">Checkout</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+let cart = JSON.parse(localStorage.getItem('fancyCart')) || [];
+
+function renderCart() {
+  let container = $('#cart-items');
+  container.empty();
+
+  if (cart.length === 0) {
+    container.html('<p>Your cart is empty.</p>');
+    $('#cart-total').text('0.00');
+    return;
+  }
+
+  let total = 0;
+  cart.forEach((item, index) => {
+    total += item.price * item.quantity;
+    container.append(`
+      <div class="cart-item row align-items-center">
+        <div class="col-md-2">
+          <img src="${item.image}" class="item-img rounded">
+        </div>
+        <div class="col-md-4">
+          <h5>${item.name} - ${(item.weight*1000)}g</h5>
+          <p>$${item.price.toFixed(2)} per unit</p>
+        </div>
+        <div class="col-md-3">
+          <input type="number" class="form-control quantity-input"
+                 data-index="${index}" value="${item.quantity}" min="1">
+        </div>
+        <div class="col-md-3 text-end">
+          <button class="btn btn-danger btn-sm remove-item" data-index="${index}">Remove</button>
+        </div>
+      </div>
+    `);
+  });
+
+  $('#cart-total').text(total.toFixed(2));
+}
+
+$(document).ready(function(){
+  renderCart();
+
+  $(document).on('change', '.quantity-input', function(){
+    let index = $(this).data('index');
+    cart[index].quantity = Math.max(1, parseInt($(this).val() || '1', 10));
+    localStorage.setItem('fancyCart', JSON.stringify(cart));
+    renderCart();
+  });
+
+  $(document).on('click', '.remove-item', function(){
+    let index = $(this).data('index');
+    cart.splice(index, 1);
+    localStorage.setItem('fancyCart', JSON.stringify(cart));
+    renderCart();
+  });
+
+  $('#checkout-btn').click(function(){
+    if (cart.length === 0) {
+      alert('Your cart is empty!');
+    } else {
+      window.location.href = 'checkout.html';
+    }
+  });
+});
+</script>
+<!-- FOOTER -->
+<footer class="site-footer">
+  <p>© 2025 Dairy store. All rights reserved.</p>
+  <div class="footer-links">
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="terms.html">Terms of Service</a>
+    <a href="contact.html">Contact Us</a>
+  </div>
+</footer>
+
+</body>
+</html>

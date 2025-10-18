@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FancyStore - Products</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="container">
+  <header class="site-header">
+    <!-- Logo & Title -->
+    <div class="logo">
+      <img src="logo.png" alt="Dairy Store">
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="about us.html">About</a>
+      <a href="checkout.html">Contacts</a>
+    </nav>
+  </header>
+
+  <nav class="nav-bar">
+    <div class="logo">
+      <i class="fas fa-gem"></i> Premium Collection
+    </div>
+    <div class="cart-info">
+      <div class="cart-count" id="cartCount">0 items</div>
+      <a href="cart.html" class="cart-button">
+        <i class="fas fa-shopping-cart"></i>
+        View Cart
+      </a>
+    </div>
+  </nav>
+
+  <div class="products" id="products"></div>
+</div>
+
+<div class="notification" id="notification">
+  <i class="fas fa-check-circle"></i>
+  <span id="notificationText">Item added to cart!</span>
+</div>
+
+<!-- Weight Selection Modal -->
+<div id="qtyModalBackdrop" class="qty-modal-backdrop" style="display:none;"></div>
+<div id="qtyModal" class="qty-modal" style="display:none;">
+  <div class="qty-modal-header">
+    <h3 id="qmTitle">Add to Cart</h3>
+    <button class="qm-close" onclick="closeQuantityModal()">×</button>
+  </div>
+  <div class="qty-modal-body">
+    <div class="qm-product">
+      <img id="qmImage" alt="">
+      <div class="qm-info">
+        <h4 id="qmName"></h4>
+        <p id="qmDesc" class="qm-desc"></p>
+        <div class="qm-unit">Price per 1kg: $<span id="qmUnit">0.00</span></div>
+      </div>
+    </div>
+
+    <label class="qm-label" for="qmWeight">Select Weight</label>
+    <select id="qmWeight" class="qm-input" onchange="updateModalTotal()">
+      <option value="0.25">250 g</option>
+      <option value="0.5">500 g</option>
+      <option value="1">1000 g</option>
+    </select>
+
+    <div class="qm-total">Price: $<span id="qmTotal">0.00</span></div>
+  </div>
+  <div class="qty-modal-footer">
+    <button class="qm-btn-secondary" onclick="closeQuantityModal()">Cancel</button>
+    <button class="qm-btn-primary" onclick="confirmAddToCart()">Add to Cart</button>
+  </div>
+</div>
+<!-- FOOTER -->
+<footer class="site-footer">
+  <p>© 2025 Dairy store. All rights reserved.</p>
+  <div class="footer-links">
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="terms.html">Terms of Service</a>
+    <a href="contact.html">Contact Us</a>
+  </div>
+</footer>
+
+
+<script>
+const products = [
+  { id: 1, name: "Premium Whole Milk", description: "Fresh, creamy whole milk from grass-fed cows, rich in vitamins and minerals", price: 4.99, image: "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=300&fit=crop" },
+  { id: 2, name: "Artisan Aged Cheddar", description: "Premium aged cheddar cheese with sharp, complex flavor aged for 24 months", price: 12.99, image: "https://images.unsplash.com/photo-1452195100486-9cc805987862?w=400&h=300&fit=crop" },
+  { id: 3, name: "Fresh Mozzarella", description: "Handcrafted fresh mozzarella made daily, perfect for caprese salads and pizza", price: 8.99, image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop" },
+  { id: 4, name: "Grass-Fed Butter", description: "Creamy, golden butter from grass-fed cows with rich flavor and natural vitamins", price: 7.99, image: "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=400&h=300&fit=crop" },
+  { id: 5, name: "Blue Cheese Wedge", description: "Authentic blue cheese with distinctive tangy flavor and creamy texture", price: 14.99, image: "https://images.unsplash.com/photo-1634141510639-d691d86f47be?w=400&h=300&fit=crop" },
+  { id: 6, name: "Swiss Cheese Slices", description: "Mild, nutty Swiss cheese with characteristic holes, perfect for sandwiches", price: 9.99, image: "https://images.unsplash.com/photo-1452195100486-9cc805987862?w=400&h=300&fit=crop" },
+  { id: 7, name: "Vanilla Ice Cream", description: "Premium vanilla ice cream made with real vanilla beans and fresh cream", price: 8.99, image: "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=400&h=300&fit=crop" },
+  { id: 8, name: "Cottage Cheese", description: "Fresh cottage cheese with large curds, high in protein and calcium", price: 4.99, image: "https://images.unsplash.com/photo-1502741338009-cac2772e18bc?w=400&h=300&fit=crop" },
+  { id: 9, name: "Goat Cheese Log", description: "Creamy, tangy goat cheese log with herbs, perfect for appetizers and salads", price: 11.99, image: "https://images.unsplash.com/photo-1618164436241-4473940d1f5c?w=400&h=300&fit=crop" },
+  { id: 10, name: "Organic Skim Milk", description: "Fat-free organic milk from pasture-raised cows, rich in protein and calcium", price: 5.49, image: "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=300&fit=crop" },
+  { id: 11, name: "Parmesan Cheese", description: "Aged Parmigiano-Reggiano with nutty, complex flavor, freshly grated", price: 16.99, image: "https://images.unsplash.com/photo-1615485925600-97237c4fc1ec?w=400&h=300&fit=crop" },
+  { id: 12, name: "Chocolate Milk", description: "Rich chocolate milk made with premium cocoa and fresh whole milk", price: 4.49, image: "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=300&fit=crop" },
+  { id: 13, name: "Brie Cheese Wheel", description: "Soft, creamy brie with edible white rind and buttery, mild flavor", price: 13.99, image: "https://images.unsplash.com/photo-1634141510639-d691d86f47be?w=400&h=300&fit=crop" },
+  { id: 14, name: "Chocolate Ice Cream", description: "Rich, decadent chocolate ice cream made with Belgian cocoa and real cream", price: 9.99, image: "https://images.unsplash.com/photo-1488900128323-21503983a07e?w=400&h=300&fit=crop" },
+  { id: 15, name: "Provolone Cheese", description: "Mild, semi-hard provolone cheese with smooth texture, great for sandwiches", price: 10.99, image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop" },
+  { id: 16, name: "Buttermilk", description: "Tangy buttermilk perfect for baking fluffy pancakes, biscuits, and marinades", price: 3.49, image: "https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&h=300&fit=crop" },
+  { id: 17, name: "Ricotta Cheese", description: "Fresh, creamy ricotta cheese perfect for lasagna, cannoli, and desserts", price: 6.99, image: "https://images.unsplash.com/photo-1502741338009-cac2772e18bc?w=400&h=300&fit=crop" }
+];
+
+let cart = JSON.parse(localStorage.getItem('fancyCart')) || [];
+let selectedProduct = null;
+
+function renderProducts() {
+  $('#products').empty();
+  products.forEach((product, index) => {
+    $('#products').append(`
+      <div class="product">
+        <img src="${product.image}" alt="${product.name}"
+             onclick="openQuantityModal(${product.id})"
+             onerror="this.src='https://via.placeholder.com/400x300'">
+        <h3>${product.name}</h3>
+        <p>${product.description}</p>
+        <div class="price">From $${product.price.toFixed(2)}</div>
+      </div>
+    `);
+  });
+}
+
+function openQuantityModal(id) {
+  selectedProduct = products.find(p => p.id === id);
+  if (!selectedProduct) return;
+
+  $('#qmImage').attr('src', selectedProduct.image).attr('alt', selectedProduct.name);
+  $('#qmName').text(selectedProduct.name);
+  $('#qmDesc').text(selectedProduct.description);
+  $('#qmUnit').text(selectedProduct.price.toFixed(2));
+  $('#qmWeight').val("0.25");
+  updateModalTotal();
+
+  $('#qtyModalBackdrop').fadeIn(120);
+  $('#qtyModal').fadeIn(120);
+}
+
+function closeQuantityModal() {
+  $('#qtyModal').fadeOut(120);
+  $('#qtyModalBackdrop').fadeOut(120);
+  selectedProduct = null;
+}
+
+function updateModalTotal() {
+  const weightFactor = parseFloat($('#qmWeight').val());
+  const total = weightFactor * (selectedProduct ? selectedProduct.price : 0);
+  $('#qmTotal').text(total.toFixed(2));
+}
+
+function confirmAddToCart() {
+  if (!selectedProduct) return;
+  const weightFactor = parseFloat($('#qmWeight').val());
+  const totalPrice = weightFactor * selectedProduct.price;
+
+  const existing = cart.find(item => 
+    item.id === selectedProduct.id && item.weight === weightFactor
+  );
+
+  if (existing) {
+    existing.quantity++;
+  } else {
+    cart.push({
+      ...selectedProduct,
+      weight: weightFactor,
+      quantity: 1,
+      price: totalPrice
+    });
+  }
+
+  localStorage.setItem('fancyCart', JSON.stringify(cart));
+  updateCartCount();
+  showNotification(`${(weightFactor*1000)}g ${selectedProduct.name} added to cart!`);
+  closeQuantityModal();
+}
+
+function updateCartCount() {
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  $('#cartCount').text(`${totalItems} item${totalItems !== 1 ? 's' : ''}`);
+}
+
+function showNotification(message) {
+  $('#notificationText').text(message);
+  $('#notification').addClass('show');
+  setTimeout(() => { $('#notification').removeClass('show'); }, 3000);
+}
+
+$(document).ready(function(){
+  renderProducts();
+  updateCartCount();
+});
+</script>
+</body>
+</html>
